@@ -49,11 +49,6 @@ public class RentalRequestServiceImpl implements RentalRequestService {
 
     @Override
     public void saveRentalRequest(RentalRequestDTO rentalRequestDTO) {
-//        System.out.println(rentalRequestDTO.getCarId().size());
-//        System.out.println(rentalRequestDTO.getDriverId().size()+"...");
-
-        System.out.println(rentalRequestDTO);
-        System.out.println(rentalRequestDTO);
 
         /**Save data in rental request table when putting a request*/
         RentalRequest rentalRequest = mapper.map(rentalRequestDTO, RentalRequest.class);
