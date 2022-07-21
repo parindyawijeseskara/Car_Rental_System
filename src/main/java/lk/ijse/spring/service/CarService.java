@@ -2,6 +2,7 @@ package lk.ijse.spring.service;
 
 
 import lk.ijse.spring.dto.CarDTO;
+import lk.ijse.spring.dto.CarSearchDTO;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public interface CarService {
 
     List<CarDTO>getAllCars();
 
-    List<CarDTO>findAllAvailableCars();
+    List<CarDTO>findAllAvailableCars(CarSearchDTO carSearchDTO);
 
     List<CarDTO>findByNoOfPassengers(String noOfPassengers);
 

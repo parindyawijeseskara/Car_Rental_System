@@ -1,9 +1,14 @@
 package lk.ijse.spring.service.impl;
 
 import lk.ijse.spring.dto.CarDTO;
+import lk.ijse.spring.dto.CarSearchDTO;
 import lk.ijse.spring.dto.UserDTO;
 import lk.ijse.spring.entity.Car;
+import lk.ijse.spring.entity.CarRentalRequest;
+import lk.ijse.spring.entity.RentalRequest;
+import lk.ijse.spring.repo.CarRentalRequestRepo;
 import lk.ijse.spring.repo.CarRepo;
+import lk.ijse.spring.repo.RentalRequestRepo;
 import lk.ijse.spring.service.CarService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
@@ -11,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -22,7 +31,13 @@ public class CarServiceImpl implements CarService {
     private CarRepo carRepo;
 
     @Autowired
+    private RentalRequestRepo rentalRequestRepo;
+
+    @Autowired
     private ModelMapper mapper;
+
+    @Autowired
+    private CarRentalRequestRepo carRentalRequestRepo;
 
 
     @Override
@@ -66,8 +81,49 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public List<CarDTO> findAllAvailableCars() {
-        return null;
+    public List<CarDTO> findAllAvailableCars(CarSearchDTO carSearchDTO) {
+        /** get availbale list */
+        List<RentalRequest> list = rentalRequestRepo.findAllByPickUpDateBetweenOrReturnDateBetween(carSearchDTO.getFromDate(),
+                carSearchDTO.getToDate(),carSearchDTO.getFromDate(),carSearchDTO.getToDate());
+        System.out.println(list.size());
+
+        List<Car> cardIdList = new ArrayList<>();
+        List<CarDTO> availableCars = new ArrayList<>();
+
+        List<Car> all1 = carRepo.findAll();
+
+        for (RentalRequest rentalRequest:list) {
+            Integer requestId = rentalRequest.getRentalRequestId();
+            List<CarRentalRequest> all = carRentalRequestRepo.findAllByRentalRequestIdRentalRequestId(requestId);
+
+            if (!all.isEmpty() && all.size() >0){
+                for (CarRentalRequest carRentalRequest:all) {
+                    Car car = carRentalRequest.getCarId();
+
+                    if (!cardIdList.contains(car)){
+                        cardIdList.add(car);
+                    }
+                }
+            }
+        }
+
+        System.out.println("List size"+cardIdList.size());
+        for (Car car:cardIdList) {
+            if (all1.contains(car)){
+                all1.remove(car);
+            }
+        }
+
+        for (Car car:all1) {
+            CarDTO carDTO = new CarDTO();
+            carDTO.setCarId(car.getCarId());
+            carDTO.setBrand(car.getBrand());
+            // set other fileds
+
+            availableCars.add(carDTO);
+        }
+
+        return availableCars;
     }
 
     @Override

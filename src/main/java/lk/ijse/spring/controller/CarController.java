@@ -2,6 +2,7 @@ package lk.ijse.spring.controller;
 
 
 import lk.ijse.spring.dto.CarDTO;
+import lk.ijse.spring.dto.CarSearchDTO;
 import lk.ijse.spring.service.CarService;
 import lk.ijse.spring.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,11 @@ public class CarController {
         return new ResponseUtil(200,"Ok",carService.findByFuelType(fuelType));
     }
 
+    //getAll cars
+    @GetMapping(path = "/findAllCars",produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil findAllAvailableCars(@RequestBody CarSearchDTO carSearchDTO){
+        return new ResponseUtil(200,"Ok",carService.findAllAvailableCars(carSearchDTO));
+    }
 
 
 
