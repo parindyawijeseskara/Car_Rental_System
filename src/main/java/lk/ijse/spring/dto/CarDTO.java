@@ -28,11 +28,10 @@ public class CarDTO {
     private Date updatedOn;
     private int updatedBy;
     private String status;
-    private String freeKmPerDay;
-    private String freeKmPerMonth;
+    private String freeMileage;
     private double monthlyRate;
     private double dailyRate;
-    private double pricePerExtraKm;
+    private String extraKm;
     private String noOfPassengers;
     private String fuelType;
     private int createdBy;

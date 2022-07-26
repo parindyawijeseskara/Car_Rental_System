@@ -36,4 +36,9 @@ public class RentalRequestDTO {
     private List<Integer> driverId;
     private List<String> carNameList;
     private List<String> driverNameList;
+    private String nic;
+
+
+
+
 }

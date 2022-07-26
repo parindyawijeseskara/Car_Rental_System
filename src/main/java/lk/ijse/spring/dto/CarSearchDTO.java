@@ -6,4 +6,5 @@ import lombok.Data;
 public class CarSearchDTO {
     private String fromDate;
     private String toDate;
+    private String type;
 }
