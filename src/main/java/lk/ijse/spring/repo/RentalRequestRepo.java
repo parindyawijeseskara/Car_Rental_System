@@ -15,4 +15,5 @@ public interface RentalRequestRepo extends JpaRepository<RentalRequest,Integer> 
             "WHERE  RentalRequest.pickUpDate BETWEEN ? AND ? OR RentalRequest.returnDate BETWEEN ? AND ?", nativeQuery = true)
     List<RentalRequest> findAllByPickUpDateBetweenOrReturnDateBetween(String fromDate1,String toDate1,String fromDate2,String toDate2);
 
+    List<RentalRequest> getAllByStatus(String status);
 }

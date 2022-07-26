@@ -19,6 +19,6 @@ public interface CarRepo extends JpaRepository<Car,Integer> {
 
     Car findByCarId(Integer Id);
 
-
+    List<Car> findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(String noOfPassangers,String transmission,String Brand,String type,String fuelType);
 
 }
