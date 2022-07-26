@@ -1,12 +1,13 @@
 package lk.ijse.spring.service;
 
 import lk.ijse.spring.dto.UserDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface UserRegistrationService {
 
-    public void saveUser(UserDTO dto);
+    public void saveUser(List<MultipartFile> fileList, UserDTO dto);
 
     public void deleteUser(Integer userId);
 

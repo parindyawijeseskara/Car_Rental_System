@@ -1,6 +1,7 @@
 package lk.ijse.spring.controller;
 
 
+import com.google.gson.Gson;
 import lk.ijse.spring.dto.UserDTO;
 import lk.ijse.spring.repo.UserTypeRepo;
 import lk.ijse.spring.service.UserRegistrationService;
@@ -10,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/user_registration")
@@ -19,11 +23,13 @@ public class UserRegistrationController {
     @Autowired
     UserRegistrationService userRegistrationService;
 
-   //add User
+    //add User
     @ResponseStatus(HttpStatus.CREATED)  //get 201 status code in browser for successfully saved customer
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil saveUser(UserDTO userDTO){
-        userRegistrationService.saveUser(userDTO);
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseUtil saveUser(@RequestParam("file") List<MultipartFile> fileList, @RequestParam("model") String model){
+        Gson gson = new Gson();
+        UserDTO userDTO = gson.fromJson(model, UserDTO.class);
+        userRegistrationService.saveUser(fileList,userDTO);
         return new ResponseUtil(200,"Saved",null);
     }
 

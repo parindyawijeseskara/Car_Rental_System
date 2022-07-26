@@ -34,8 +34,6 @@ public class RentalRequestDTO {
     private int createdBy;
     private List<Integer> carId;
     private List<Integer> driverId;
-
-
-
-
+    private List<String> carNameList;
+    private List<String> driverNameList;
 }

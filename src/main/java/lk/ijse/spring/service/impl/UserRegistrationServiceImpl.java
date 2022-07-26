@@ -3,9 +3,11 @@ package lk.ijse.spring.service.impl;
 
 import lk.ijse.spring.dto.DocumentTypeDTO;
 import lk.ijse.spring.dto.UserDTO;
+import lk.ijse.spring.entity.Document;
 import lk.ijse.spring.entity.DocumentType;
 import lk.ijse.spring.entity.User;
 import lk.ijse.spring.entity.UserType;
+import lk.ijse.spring.repo.DocumentRepo;
 import lk.ijse.spring.repo.DocumentTypeRepo;
 import lk.ijse.spring.repo.UserRepo;
 import lk.ijse.spring.repo.UserTypeRepo;
@@ -15,8 +17,13 @@ import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +39,9 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private DocumentRepo documentRepo;
 
     @Autowired
     private ModelMapper mapper;
@@ -63,8 +73,37 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
     }
 
     @Override
-    public void saveUser(UserDTO dto) {
-        userRepo.save(mapper.map(dto, User.class));
+    public void saveUser(List<MultipartFile> fileList, UserDTO dto) {
+        User save = userRepo.save(mapper.map(dto, User.class));
+
+        // document save
+        if (!fileList.isEmpty()) {
+            fileList.forEach((doc) -> {
+                Document document = new Document();
+
+                try {
+
+                    int typeIndex = doc.getOriginalFilename().indexOf('/');
+                    int extensionIndex = doc.getOriginalFilename().lastIndexOf('.');
+                    String fileName = doc.getOriginalFilename().substring(typeIndex + 1, extensionIndex);
+
+                    String  fileNameWithExtension = doc.getOriginalFilename().substring(typeIndex + 1);
+
+                    document.setName(fileName);
+                    document.setContent(doc.getBytes());
+                    document.setUploadedBy(save);
+                    document.setUploadedOn(new Date());
+                    document.setPaymentId(null);
+                    document.setCarId(null);
+                    document.setDocumentTypeId(null);
+
+                    documentRepo.save(document);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
 
     }
 

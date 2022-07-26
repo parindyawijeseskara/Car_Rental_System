@@ -24,7 +24,7 @@ public class Document {
     private Integer documentId;
 
     private String name;
-    private String content;
+    private byte[] content;
     private Date uploadedOn;
 
     //
@@ -37,7 +37,7 @@ public class Document {
     private Car carId;
 
     @ManyToOne
-    @JoinColumn(name = "paymentId",referencedColumnName = "paymentId",nullable = false)
+    @JoinColumn(name = "paymentId",referencedColumnName = "paymentId")
     private Payment paymentId;
 
     @ManyToOne

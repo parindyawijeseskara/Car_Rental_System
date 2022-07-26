@@ -42,8 +42,8 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public void saveCar(CarDTO carDTO) {
-       Car car = mapper.map(carDTO,Car.class);
-       carRepo.save(car);
+        Car car = mapper.map(carDTO,Car.class);
+        carRepo.save(car);
     }
 
     @Override
@@ -67,11 +67,11 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarDTO searchCar(Integer carId) {
-       if(carRepo.existsById(carId)){
-           return mapper.map(carRepo.findById(carId).get(),CarDTO.class);
-       }else{
-           throw new RuntimeException("No such Car for "+carId+"...!");
-       }
+        if(carRepo.existsById(carId)){
+            return mapper.map(carRepo.findById(carId).get(),CarDTO.class);
+        }else{
+            throw new RuntimeException("No such Car for "+carId+"...!");
+        }
     }
 
     @Override
@@ -82,7 +82,7 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public List<CarDTO> findAllAvailableCars(CarSearchDTO carSearchDTO) {
-        /** get availbale list */
+        /** get available list */
         List<RentalRequest> list = rentalRequestRepo.findAllByPickUpDateBetweenOrReturnDateBetween(carSearchDTO.getFromDate(),
                 carSearchDTO.getToDate(),carSearchDTO.getFromDate(),carSearchDTO.getToDate());
         System.out.println(list.size());
@@ -107,7 +107,6 @@ public class CarServiceImpl implements CarService {
             }
         }
 
-        System.out.println("List size"+cardIdList.size());
         for (Car car:cardIdList) {
             if (all1.contains(car)){
                 all1.remove(car);
