@@ -30,7 +30,9 @@ public class Payment {
     private User paymentDoneBy;
 
     private Date date;
-    private double amount;
+    private double rent_amount;
+    private double loss_damage_payment;
+    private double total_amount;
 
 //    @OneToMany
 //    @JoinColumn(name = "documentId",referencedColumnName = "documentId")
