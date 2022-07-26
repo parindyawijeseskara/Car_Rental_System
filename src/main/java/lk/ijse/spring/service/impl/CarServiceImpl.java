@@ -2,6 +2,7 @@ package lk.ijse.spring.service.impl;
 
 import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.CarSearchDTO;
+import lk.ijse.spring.dto.CarTypeSearchDTO;
 import lk.ijse.spring.dto.UserDTO;
 import lk.ijse.spring.entity.Car;
 import lk.ijse.spring.entity.CarRentalRequest;
@@ -76,13 +77,38 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public List<CarDTO> getAllCars() {
-        return mapper.map(carRepo.findAll(),new TypeToken<List<CarDTO>>() {
-        }.getType());
+        List<Car> carList = carRepo.findAll();
+        List<CarDTO> carDTOS = new ArrayList<>();
+
+        for (Car car:carList) {
+            CarDTO carDTO = new CarDTO();
+            carDTO.setBrand(car.getBrand());
+            carDTO.setCarId(car.getCarId());
+            carDTO.setColour(car.getColour());
+//            carDTO.setCreatedBy(car.getCreatedBy().getUserId());
+            carDTO.setType(car.getType());
+            carDTO.setTransmissionType(car.getTransmissionType());
+            carDTO.setRegisterNo(car.getRegisterNo());
+            carDTO.setNoOfPassengers(car.getNoOfPassengers());
+            carDTO.setMonthlyRate(car.getMonthlyRate());
+            carDTO.setMaintainence(car.getMaintainence());
+            carDTO.setFuelType(car.getFuelType());
+            carDTO.setFreeMileage(car.getFreeMileage());
+            carDTO.setExtraKm(car.getExtraKm());
+            carDTO.setDailyRate(car.getDailyRate());
+            carDTO.setExtraKm(car.getExtraKm());
+
+
+            carDTOS.add(carDTO);
+        }
+
+        return  carDTOS;
+
     }
 
     @Override
     public List<CarDTO> findAllAvailableCars(CarSearchDTO carSearchDTO) {
-        /** get available list */
+        /** get availbale list */
         List<RentalRequest> list = rentalRequestRepo.findAllByPickUpDateBetweenOrReturnDateBetween(carSearchDTO.getFromDate(),
                 carSearchDTO.getToDate(),carSearchDTO.getFromDate(),carSearchDTO.getToDate());
         System.out.println(list.size());
@@ -107,6 +133,7 @@ public class CarServiceImpl implements CarService {
             }
         }
 
+        System.out.println("List size"+cardIdList.size());
         for (Car car:cardIdList) {
             if (all1.contains(car)){
                 all1.remove(car);
@@ -156,6 +183,14 @@ public class CarServiceImpl implements CarService {
     @Override
     public List<CarDTO> findByFuelType(String fuelType) {
         List<Car> byFuelType = carRepo.findByFuelType(fuelType);
+        return mapper.map(byFuelType,new TypeToken<List<CarDTO>>() {
+        }.getType());
+    }
+
+    @Override
+    public List<CarDTO> findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(CarTypeSearchDTO carTypeSearchDTO) {
+        List<Car> byFuelType = carRepo.findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(carTypeSearchDTO.getNoOfPessangers(),
+                carTypeSearchDTO.getTransmission(),carTypeSearchDTO.getBrand(),carTypeSearchDTO.getType(),carTypeSearchDTO.getFuelType());
         return mapper.map(byFuelType,new TypeToken<List<CarDTO>>() {
         }.getType());
     }

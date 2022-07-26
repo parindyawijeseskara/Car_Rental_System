@@ -19,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,10 +39,11 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
     private UserRepo userRepo;
 
     @Autowired
-    private DocumentRepo documentRepo;
+    private ModelMapper mapper;
 
     @Autowired
-    private ModelMapper mapper;
+    private DocumentRepo documentRepo;
+
 
     @Autowired
     public void addUserType(){
@@ -104,7 +103,6 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
                 }
             });
         }
-
     }
 
     @Override

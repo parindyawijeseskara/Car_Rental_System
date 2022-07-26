@@ -1,6 +1,7 @@
 package lk.ijse.spring.service.impl;
 
 import lk.ijse.spring.dto.CarDTO;
+import lk.ijse.spring.dto.CarTypeDTO;
 import lk.ijse.spring.dto.RentalRequestDTO;
 import lk.ijse.spring.entity.*;
 import lk.ijse.spring.repo.*;
@@ -48,11 +49,34 @@ public class RentalRequestServiceImpl implements RentalRequestService {
     @Autowired
     CarScheduleRepo carScheduleRepo;
 
+    @Autowired
+    PaymentRepo paymentRepo;
+
+    public double payment;
+    public double rentalAmount;
+
     @Override
     public void saveRentalRequest(RentalRequestDTO rentalRequestDTO) {
 
+        /** Get Data Difference and Save Payment Info */
+        long diff = rentalRequestDTO.getReturnDate().getTime() - rentalRequestDTO.getPickUpDate().getTime();
+        int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
+        System.out.println("No of days :"+diffDays);
         /**Save data in rental request table when putting a request*/
-        RentalRequest rentalRequest = mapper.map(rentalRequestDTO, RentalRequest.class);
+        for (Integer carId:rentalRequestDTO.getCarId()) {
+            Car car = carRepo.findByCarId(carId);
+            this.rentalAmount += car.getDailyRate()*diffDays;
+        }
+        rentalRequestDTO.setRentalFee(this.rentalAmount);
+        RentalRequest rentalRequest = new RentalRequest();
+        rentalRequest.setRentalFee(this.rentalAmount);
+        rentalRequest.setDamageOrNot(rentalRequestDTO.getDamageOrNot());
+        rentalRequest.setComment(rentalRequestDTO.getComment());
+        rentalRequest.setReturnDate(rentalRequestDTO.getReturnDate());
+        rentalRequest.setStatus("PEN");
+        rentalRequest.setLossDamagePayment(rentalRequestDTO.getLossDamagePayment());
+        rentalRequest.setCreatedBy(userRepo.findByNic(rentalRequestDTO.getNic()));
+        rentalRequest.setPickUpDate(rentalRequestDTO.getPickUpDate());
         RentalRequest save = requestRepo.save(rentalRequest);
         Integer rentalRequestID = save.getRentalRequestId();
 
@@ -63,7 +87,7 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             car.setStatus("Reserved");
             car.setCarId(carId);
 
-            User userId = userRepo.findByUserId(rentalRequestDTO.getUpdatedBy());
+            User userId = userRepo.findByNic(rentalRequestDTO.getNic());
             car.setUpdatedBy(userId);
             car.setUpdatedOn(new Date());
             carRepo.save(car);
@@ -74,7 +98,7 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             Driver driver = driverRepo.findByDriverId(driverId);
             driver.setStatus("Reserved");
 
-            User userId = userRepo.findByUserId(rentalRequestDTO.getUpdatedBy());
+            User userId = userRepo.findByNic(rentalRequestDTO.getNic());
             driver.setUpdatedBy(userId);
             driver.setStatus("UnAvailable");
             driver.setUpdatedOn(new Date());
@@ -134,6 +158,21 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             carSchedule.setCarScheduleId(1);
             carScheduleRepo.save(carSchedule);
         }
+
+        /** Save Loss Damage Amount */
+        Payment payment = new Payment();
+        payment.setDate(new Date());
+        payment.setLoss_damage_payment(rentalRequestDTO.getLossDamagePayment());
+        payment.setPaymentDoneBy(userRepo.findByNic(rentalRequestDTO.getNic()));
+        payment.setRentalRequestId(save);
+        Payment payment1 = paymentRepo.save(payment);
+
+
+        Payment byPaymentId = paymentRepo.findByPaymentId(payment1.getPaymentId());
+        byPaymentId.setRent_amount(this.rentalAmount);
+        byPaymentId.setTotal_amount(this.rentalAmount+byPaymentId.getLoss_damage_payment());
+        paymentRepo.save(byPaymentId);
+
 
     }
 
@@ -303,5 +342,29 @@ public class RentalRequestServiceImpl implements RentalRequestService {
     public List<RentalRequestDTO> getAllRequests() {
         return mapper.map(requestRepo.findAll(),new TypeToken<List<RentalRequestDTO>>() {
         }.getType());
+    }
+
+    @Override
+    public List<RentalRequestDTO> getAllPendingRequests() {
+        return mapper.map(requestRepo.getAllByStatus("PEN"),new TypeToken<List<RentalRequestDTO>>() {
+        }.getType());
+    }
+
+    @Override
+    public double getLossDamageAmount(List<CarTypeDTO> carTypeDTOS) {
+        for (CarTypeDTO carTypeDTO:carTypeDTOS) {
+            if (carTypeDTO.getType().equals("General")) {
+                this.payment += 10000.00;
+            }
+
+            if (carTypeDTO.getType().equals("Premium")) {
+                this.payment += 15000.00;
+            }
+
+            if (carTypeDTO.getType().equals("Luxury")){
+                this.payment += 20000.00;
+            }
+        }
+        return this.payment;
     }
 }

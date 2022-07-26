@@ -3,6 +3,7 @@ package lk.ijse.spring.service;
 
 import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.CarSearchDTO;
+import lk.ijse.spring.dto.CarTypeSearchDTO;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public interface CarService {
 
     List<CarDTO>findByFuelType(String fuelType);
 
+    List<CarDTO> findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(CarTypeSearchDTO carTypeSearchDTO);
 
 
 }

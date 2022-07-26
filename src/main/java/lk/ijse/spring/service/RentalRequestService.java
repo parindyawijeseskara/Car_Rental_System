@@ -1,5 +1,6 @@
 package lk.ijse.spring.service;
 
+import lk.ijse.spring.dto.CarTypeDTO;
 import lk.ijse.spring.dto.RentalRequestDTO;
 
 import java.util.List;
@@ -15,6 +16,10 @@ public interface RentalRequestService {
     public RentalRequestDTO searchRentalRequest(Integer rentalRequestId);
 
     List<RentalRequestDTO> getAllRequests();
+
+    List<RentalRequestDTO>getAllPendingRequests();
+
+    public double getLossDamageAmount(List<CarTypeDTO> carTypeDTOS);
 
 
 }
