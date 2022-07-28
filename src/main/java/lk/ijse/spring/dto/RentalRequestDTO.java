@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -23,8 +24,9 @@ public class RentalRequestDTO {
     private Date pickUpDate;
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date returnDate;
+    private String pickuptime;
+    private String returntime;
     private String status;
-    private double lossDamagePayment;
     private String damageOrNot;
     private double rentalFee;
     private String comment;
@@ -32,7 +34,7 @@ public class RentalRequestDTO {
     private Date updatedOn;
     private int updatedBy;
     private int createdBy;
-    private List<Integer> carId;
+    private List<CarPaymentDTO> carPayment;
     private List<Integer> driverId;
     private List<String> carNameList;
     private List<String> driverNameList;

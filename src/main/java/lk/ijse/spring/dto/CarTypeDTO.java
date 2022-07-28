@@ -2,9 +2,12 @@ package lk.ijse.spring.dto;
 
 import lombok.Data;
 
+import java.util.Date;
+import java.util.List;
+
 @Data
 public class CarTypeDTO {
-    private String type;
-    private String name;
-    private String regNo;
+    private List<Integer> carId;
+    private Date pickUpDate;
+    private Date returnDate;
 }
