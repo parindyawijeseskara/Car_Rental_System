@@ -4,19 +4,17 @@ import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.CarSearchDTO;
 import lk.ijse.spring.dto.CarTypeSearchDTO;
 import lk.ijse.spring.dto.UserDTO;
-import lk.ijse.spring.entity.Car;
-import lk.ijse.spring.entity.CarRentalRequest;
-import lk.ijse.spring.entity.RentalRequest;
-import lk.ijse.spring.repo.CarRentalRequestRepo;
-import lk.ijse.spring.repo.CarRepo;
-import lk.ijse.spring.repo.RentalRequestRepo;
+import lk.ijse.spring.entity.*;
+import lk.ijse.spring.repo.*;
 import lk.ijse.spring.service.CarService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,6 +25,12 @@ import java.util.List;
 @Service
 @Transactional
 public class CarServiceImpl implements CarService {
+
+    @Autowired
+    private DocumentRepo documentRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     @Autowired
     private CarRepo carRepo;
@@ -42,9 +46,39 @@ public class CarServiceImpl implements CarService {
 
 
     @Override
-    public void saveCar(CarDTO carDTO) {
-        Car car = mapper.map(carDTO,Car.class);
-        carRepo.save(car);
+    public void saveCar(List<MultipartFile>fileList, CarDTO carDTO) {
+        Car save = carRepo.save(mapper.map(carDTO, Car.class));
+        Car carId = carRepo.findByCarId(save.getCarId());
+
+        //document save
+        if (!fileList.isEmpty()) {
+            fileList.forEach((doc) -> {
+                Document document = new Document();
+
+                try {
+
+                    int typeIndex = doc.getOriginalFilename().indexOf('/');
+                    int extensionIndex = doc.getOriginalFilename().lastIndexOf('.');
+                    String fileName = doc.getOriginalFilename().substring(typeIndex + 1, extensionIndex);
+
+                    String  fileNameWithExtension = doc.getOriginalFilename().substring(typeIndex + 1);
+
+                    document.setName(fileName);
+                    document.setContent(doc.getBytes());
+                    document.setUploadedBy(save.getCreatedBy());
+                    document.setUploadedOn(new Date());
+                    document.setPaymentId(null);
+                    document.setCarId(carId);
+                    document.setDocumentTypeId(null);
+
+                    documentRepo.save(document);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
     }
 
     @Override
@@ -93,11 +127,14 @@ public class CarServiceImpl implements CarService {
             carDTO.setMonthlyRate(car.getMonthlyRate());
             carDTO.setMaintainence(car.getMaintainence());
             carDTO.setFuelType(car.getFuelType());
-            carDTO.setFreeMileage(car.getFreeMileage());
-            carDTO.setExtraKm(car.getExtraKm());
+//            carDTO.setFreeMileage(car.getFreeMileage());
+//            carDTO.setExtraKm(car.getExtraKm());
+//            carDTO.setDailyRate(car.getDailyRate());
+//            carDTO.setExtraKm(car.getExtraKm());
             carDTO.setDailyRate(car.getDailyRate());
-            carDTO.setExtraKm(car.getExtraKm());
-
+            carDTO.setFreeKmPerDay(car.getFreeKmPerDay());
+            carDTO.setFreeKmPerMonth(car.getFreeKmPerMonth());
+            carDTO.setPricePerExtraKm(car.getPricePerExtraKm());
 
             carDTOS.add(carDTO);
         }

@@ -1,6 +1,7 @@
 package lk.ijse.spring.service.impl;
 
 import lk.ijse.spring.dto.CarDTO;
+import lk.ijse.spring.dto.CarPaymentDTO;
 import lk.ijse.spring.dto.CarTypeDTO;
 import lk.ijse.spring.dto.RentalRequestDTO;
 import lk.ijse.spring.entity.*;
@@ -11,8 +12,10 @@ import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import sun.util.resources.cldr.am.CurrencyNames_am;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,19 +55,23 @@ public class RentalRequestServiceImpl implements RentalRequestService {
     @Autowired
     PaymentRepo paymentRepo;
 
+    @Autowired
+    DocumentRepo documentRepo;
+
     public double payment;
     public double rentalAmount;
 
     @Override
-    public void saveRentalRequest(RentalRequestDTO rentalRequestDTO) {
+    public void saveRentalRequest(List<MultipartFile> file,RentalRequestDTO rentalRequestDTO) {
 
         /** Get Data Difference and Save Payment Info */
         long diff = rentalRequestDTO.getReturnDate().getTime() - rentalRequestDTO.getPickUpDate().getTime();
         int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
         System.out.println("No of days :"+diffDays);
+
         /**Save data in rental request table when putting a request*/
-        for (Integer carId:rentalRequestDTO.getCarId()) {
-            Car car = carRepo.findByCarId(carId);
+        for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+            Car car = carRepo.findByCarId(carPaymentDTO.getCarId());
             this.rentalAmount += car.getDailyRate()*diffDays;
         }
         rentalRequestDTO.setRentalFee(this.rentalAmount);
@@ -74,18 +81,49 @@ public class RentalRequestServiceImpl implements RentalRequestService {
         rentalRequest.setComment(rentalRequestDTO.getComment());
         rentalRequest.setReturnDate(rentalRequestDTO.getReturnDate());
         rentalRequest.setStatus("PEN");
-        rentalRequest.setLossDamagePayment(rentalRequestDTO.getLossDamagePayment());
         rentalRequest.setCreatedBy(userRepo.findByNic(rentalRequestDTO.getNic()));
         rentalRequest.setPickUpDate(rentalRequestDTO.getPickUpDate());
+        rentalRequest.setPickuptime(rentalRequestDTO.getPickuptime());
+        rentalRequest.setReturntime(rentalRequestDTO.getReturntime());
         RentalRequest save = requestRepo.save(rentalRequest);
         Integer rentalRequestID = save.getRentalRequestId();
 
+        /** Save Document Files */
+        if (!file.isEmpty()) {
+            file.forEach((doc) -> {
+                Document document = new Document();
+
+                try {
+
+                    int typeIndex = doc.getOriginalFilename().indexOf('/');
+                    int extensionIndex = doc.getOriginalFilename().lastIndexOf('.');
+                    String fileName = doc.getOriginalFilename().substring(typeIndex + 1, extensionIndex);
+
+                    String  fileNameWithExtension = doc.getOriginalFilename().substring(typeIndex + 1);
+
+                    document.setName(fileName);
+                    document.setContent(doc.getBytes());
+                    document.setUploadedBy(null);
+                    document.setUploadedOn(new Date());
+                    document.setPaymentId(null);
+                    document.setCarId(null);
+                    document.setDocumentTypeId(null);
+                    document.setRentalRequestId(save);
+
+                    documentRepo.save(document);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
 
         /** Update Car Details when putting a request*/
-        for (Integer carId:rentalRequestDTO.getCarId()) {
-            Car car = carRepo.findByCarId(carId);
+        for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+            Car car = carRepo.findByCarId(carPaymentDTO.getCarId());
             car.setStatus("Reserved");
-            car.setCarId(carId);
+            car.setCarId(carPaymentDTO.getCarId());
 
             User userId = userRepo.findByNic(rentalRequestDTO.getNic());
             car.setUpdatedBy(userId);
@@ -93,22 +131,25 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             carRepo.save(car);
         }
 
-        /** Update driver details when putting a request*/
-        for (Integer driverId:rentalRequestDTO.getDriverId()) {
-            Driver driver = driverRepo.findByDriverId(driverId);
-            driver.setStatus("Reserved");
 
-            User userId = userRepo.findByNic(rentalRequestDTO.getNic());
-            driver.setUpdatedBy(userId);
-            driver.setStatus("UnAvailable");
-            driver.setUpdatedOn(new Date());
-            driverRepo.save(driver);
+        if (rentalRequestDTO.getDriverId() != null){
+            /** Update driver details when putting a request*/
+            for (Integer driverId:rentalRequestDTO.getDriverId()) {
+                Driver driver = driverRepo.findByDriverId(driverId);
+                driver.setStatus("Reserved");
+
+                User userId = userRepo.findByNic(rentalRequestDTO.getNic());
+                driver.setUpdatedBy(userId);
+                driver.setStatus("UnAvailable");
+                driver.setUpdatedOn(new Date());
+                driverRepo.save(driver);
+            }
         }
 
         /**Save data in carRentalRequest table when putting a request*/
-        for (Integer carId :rentalRequestDTO.getCarId()) {
+        for (CarPaymentDTO carPaymentDTO :rentalRequestDTO.getCarPayment()) {
             /** Get Car Entity By Car Id */
-            Car car = carRepo.findByCarId(carId);
+            Car car = carRepo.findByCarId(carPaymentDTO.getCarId());
 
             RentalRequest rentalRequestId = requestRepo.findByRentalRequestId(rentalRequestID);
 
@@ -116,40 +157,43 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             carRentalRequest.setCarRentalRequestId(1);
             carRentalRequest.setCarId(car);
             carRentalRequest.setRentalRequestId(rentalRequestId);
+            carRentalRequest.setLossDamagePayment(carPaymentDTO.getLossDamagePayment());
 
             carRentalRequestRepo.save(carRentalRequest);
         }
 
-        /**save data to rentalRequestDriver table when putting a request*/
+        if (rentalRequestDTO.getDriverId() != null){
+            /**save data to rentalRequestDriver table when putting a request*/
 
-        for (Integer driverId:rentalRequestDTO.getDriverId()) {
-            Driver byDriverId = driverRepo.findByDriverId(driverId);
-            RentalRequest rentalRequestId = requestRepo.findByRentalRequestId(rentalRequestID);
+            for (Integer driverId:rentalRequestDTO.getDriverId()) {
+                Driver byDriverId = driverRepo.findByDriverId(driverId);
+                RentalRequest rentalRequestId = requestRepo.findByRentalRequestId(rentalRequestID);
 
-            RentalRequestDriver rentalRequestDriver = new RentalRequestDriver();
-            rentalRequestDriver.setDriverId(byDriverId);
-            rentalRequestDriver.setRentalRequestId(rentalRequestId);
-            rentalRequestDriver.setRentalRequestDriverId(1);
-            rentalRequestDriverRepo.save(rentalRequestDriver);
+                RentalRequestDriver rentalRequestDriver = new RentalRequestDriver();
+                rentalRequestDriver.setDriverId(byDriverId);
+                rentalRequestDriver.setRentalRequestId(rentalRequestId);
+                rentalRequestDriver.setRentalRequestDriverId(1);
+                rentalRequestDriverRepo.save(rentalRequestDriver);
 
-        }
+            }
 
-        /**Save data to driverSchedule table when putting a rental request*/
-        for (Integer driverId:rentalRequestDTO.getDriverId()) {
-            Driver driverId1 = driverRepo.findByDriverId(driverId);
+            /**Save data to driverSchedule table when putting a rental request*/
+            for (Integer driverId:rentalRequestDTO.getDriverId()) {
+                Driver driverId1 = driverRepo.findByDriverId(driverId);
 
-            DriverSchedule driverSchedule = new DriverSchedule();
-            driverSchedule.setDriverId(driverId1);
-            driverSchedule.setStartDate(rentalRequestDTO.getPickUpDate());
-            driverSchedule.setEndDate(rentalRequestDTO.getReturnDate());
-            driverSchedule.setDriverScheduleId(1);
-            driverScheduleRepo.save(driverSchedule);
+                DriverSchedule driverSchedule = new DriverSchedule();
+                driverSchedule.setDriverId(driverId1);
+                driverSchedule.setStartDate(rentalRequestDTO.getPickUpDate());
+                driverSchedule.setEndDate(rentalRequestDTO.getReturnDate());
+                driverSchedule.setDriverScheduleId(1);
+                driverScheduleRepo.save(driverSchedule);
 
+            }
         }
 
         /**Save data to carSchedule table when putting a request*/
-        for (Integer carId:rentalRequestDTO.getCarId()) {
-            Car carId1 = carRepo.findByCarId(carId);
+        for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+            Car carId1 = carRepo.findByCarId(carPaymentDTO.getCarId());
 
             CarSchedule carSchedule = new CarSchedule();
             carSchedule.setCarId(carId1);
@@ -159,10 +203,15 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             carScheduleRepo.save(carSchedule);
         }
 
+        double lossDamagePayment = 0.0;
+        for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+            /** Save Loss Damage Amount */
+            lossDamagePayment += carPaymentDTO.getLossDamagePayment();
+        }
         /** Save Loss Damage Amount */
         Payment payment = new Payment();
         payment.setDate(new Date());
-        payment.setLoss_damage_payment(rentalRequestDTO.getLossDamagePayment());
+        payment.setLoss_damage_payment(lossDamagePayment);
         payment.setPaymentDoneBy(userRepo.findByNic(rentalRequestDTO.getNic()));
         payment.setRentalRequestId(save);
         Payment payment1 = paymentRepo.save(payment);
@@ -172,7 +221,6 @@ public class RentalRequestServiceImpl implements RentalRequestService {
         byPaymentId.setRent_amount(this.rentalAmount);
         byPaymentId.setTotal_amount(this.rentalAmount+byPaymentId.getLoss_damage_payment());
         paymentRepo.save(byPaymentId);
-
 
     }
 
@@ -204,10 +252,10 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             requestRepo.save(rentalRequest);
 
             /** Update Car Details when putting a request*/
-            for (Integer carId:rentalRequestDTO.getCarId()) {
-                Car car = carRepo.findByCarId(carId);
+            for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+                Car car = carRepo.findByCarId(carPaymentDTO.getCarId());
                 car.setStatus("Reserved");
-                car.setCarId(carId);
+                car.setCarId(carPaymentDTO.getCarId());
 
                 User userId = userRepo.findByUserId(rentalRequestDTO.getUpdatedBy());
                 car.setUpdatedBy(userId);
@@ -229,9 +277,9 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             }
 
             /**Save data in carRentalRequest table when putting a request*/
-            for (Integer carId :rentalRequestDTO.getCarId()) {
+            for (CarPaymentDTO carPaymentDTO :rentalRequestDTO.getCarPayment()) {
                 /** Get Car Entity By Car Id */
-                Car car = carRepo.findByCarId(carId);
+                Car car = carRepo.findByCarId(carPaymentDTO.getCarId());
 
                 RentalRequest rentalRequestId = requestRepo.findByRentalRequestId(rentalRequestDTO.getRentalRequestId());
 
@@ -271,8 +319,8 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             }
 
             /**Save data to carSchedule table when putting a request*/
-            for (Integer carId:rentalRequestDTO.getCarId()) {
-                Car carId1 = carRepo.findByCarId(carId);
+            for (CarPaymentDTO carPaymentDTO:rentalRequestDTO.getCarPayment()) {
+                Car carId1 = carRepo.findByCarId(carPaymentDTO.getCarId());
 
                 CarSchedule carSchedule = new CarSchedule();
                 carSchedule.setCarId(carId1);
@@ -296,19 +344,24 @@ public class RentalRequestServiceImpl implements RentalRequestService {
             RentalRequestDTO rentalRequestDTO = new RentalRequestDTO();
             rentalRequestDTO.setDamageOrNot(byRentalRequestId.getDamageOrNot());
             rentalRequestDTO.setComment(byRentalRequestId.getComment());
-            rentalRequestDTO.setLossDamagePayment(byRentalRequestId.getLossDamagePayment());
             rentalRequestDTO.setPickUpDate(byRentalRequestId.getPickUpDate());
             rentalRequestDTO.setStatus(byRentalRequestId.getStatus());
             rentalRequestDTO.setReturnDate(byRentalRequestId.getReturnDate());
             rentalRequestDTO.setRentalFee(byRentalRequestId.getRentalFee());
             rentalRequestDTO.setRentalRequestId(rentalRequestId);
 
-            List<Integer> carIdList = new ArrayList<>();
+            List<CarPaymentDTO> carIdList = new ArrayList<>();
             List<String> carNameList = new ArrayList<>();
             List<CarRentalRequest> all = carRentalRequestRepo.findAllByRentalRequestIdRentalRequestId(rentalRequestId);
             for (CarRentalRequest carRentalRequest:all) {
                 Integer carId = carRentalRequest.getCarId().getCarId();
-                carIdList.add(carId);
+                double lossDamage = carRentalRequest.getLossDamagePayment();
+
+                CarPaymentDTO carPaymentDTO = new CarPaymentDTO();
+                carPaymentDTO.setCarId(carId);
+                carPaymentDTO.setLossDamagePayment(lossDamage);
+
+                carIdList.add(carPaymentDTO);
 
                 String carName = carRentalRequest.getCarId().getType();
                 carNameList.add(carName);
@@ -326,7 +379,7 @@ public class RentalRequestServiceImpl implements RentalRequestService {
                 driverNameList.add(driverName);
             }
 
-            rentalRequestDTO.setCarId(carIdList);
+            rentalRequestDTO.setCarPayment(carIdList);
             rentalRequestDTO.setCarNameList(carNameList);
             rentalRequestDTO.setDriverId(driverIdList);
             rentalRequestDTO.setDriverNameList(driverNameList);
@@ -351,20 +404,40 @@ public class RentalRequestServiceImpl implements RentalRequestService {
     }
 
     @Override
-    public double getLossDamageAmount(List<CarTypeDTO> carTypeDTOS) {
-        for (CarTypeDTO carTypeDTO:carTypeDTOS) {
-            if (carTypeDTO.getType().equals("General")) {
-                this.payment += 10000.00;
+    public double getLossDamageAmount(CarTypeDTO carTypeDTOS) {
+        double lossDamagePayment = 0.0;
+        for (Integer carId:carTypeDTOS.getCarId()) {
+
+            System.out.println(carId);
+            Car car = carRepo.findByCarId(carId);
+            System.out.println(car.getType());
+            if (car.getType().equals("General")) {
+                lossDamagePayment = 10000.00;
             }
 
-            if (carTypeDTO.getType().equals("Premium")) {
-                this.payment += 15000.00;
+            if (car.getType().equals("Premium")) {
+                lossDamagePayment = 15000.00;
             }
 
-            if (carTypeDTO.getType().equals("Luxury")){
-                this.payment += 20000.00;
+            if (car.getType().equals("Luxury")){
+                lossDamagePayment = 20000.00;
             }
         }
-        return this.payment;
+        return lossDamagePayment;
+    }
+
+    @Override
+    public double getRentalFeeToPay(CarTypeDTO carTypeDTOS) {
+        /** Get Data Difference and Save Payment Info */
+        long diff = carTypeDTOS.getReturnDate().getTime() - carTypeDTOS.getPickUpDate().getTime();
+        int diffDays = (int) (diff / (24 * 60 * 60 * 1000));
+        System.out.println("No of days :"+diffDays);
+        /**Save data in rental request table when putting a request*/
+        for (Integer carId:carTypeDTOS.getCarId()) {
+            Car car = carRepo.findByCarId(carId);
+            this.rentalAmount += car.getDailyRate()*diffDays;
+        }
+
+        return this.rentalAmount;
     }
 }
