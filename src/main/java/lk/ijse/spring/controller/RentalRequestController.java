@@ -1,14 +1,17 @@
 package lk.ijse.spring.controller;
 
 
+import com.google.gson.Gson;
 import lk.ijse.spring.dto.CarTypeDTO;
 import lk.ijse.spring.dto.RentalRequestDTO;
+import lk.ijse.spring.dto.UserDTO;
 import lk.ijse.spring.service.RentalRequestService;
 import lk.ijse.spring.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,11 +23,13 @@ public class RentalRequestController {
     @Autowired
     private RentalRequestService rentalRequestService;
 
-    /** Save Rental Reuwsts */
+    /** Save Rental Request */
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil saveRentalRequest(@RequestBody RentalRequestDTO rentalRequestDTO){
-        rentalRequestService.saveRentalRequest(rentalRequestDTO);
+    @PostMapping
+    public ResponseUtil saveRentalRequest(@RequestParam("file") List<MultipartFile> fileList, @RequestParam("model") String model){
+        Gson gson = new Gson();
+        RentalRequestDTO rentalRequestDTO = gson.fromJson(model, RentalRequestDTO.class);
+        rentalRequestService.saveRentalRequest(fileList,rentalRequestDTO);
         return new ResponseUtil(200,"Saved",rentalRequestDTO);
     }
 
@@ -62,10 +67,15 @@ public class RentalRequestController {
     }
 
     /** Get Loss Damage Payment */
-    @GetMapping(path = "/getLossDamageAmount", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil getLossDamageAmount(@RequestBody List<CarTypeDTO> carTypeDTO){
+    @PostMapping(path = "/getLossDamageAmount", consumes = "application/json", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil getLossDamageAmount(@RequestBody CarTypeDTO carTypeDTO){
         return new ResponseUtil(200,"Loss Damage Payment", rentalRequestService.getLossDamageAmount(carTypeDTO));
     }
 
+    /** Get Rental Fee Payment */
+    @PostMapping(path = "/getRentalFeeToPay", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil getRentalFeeToPay(@RequestBody CarTypeDTO carTypeDTO){
+        return new ResponseUtil(200,"Rental Fee Payment", rentalRequestService.getRentalFeeToPay(carTypeDTO));
+    }
 
 }

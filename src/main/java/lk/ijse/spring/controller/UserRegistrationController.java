@@ -25,7 +25,7 @@ public class UserRegistrationController {
 
     //add User
     @ResponseStatus(HttpStatus.CREATED)  //get 201 status code in browser for successfully saved customer
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseUtil saveUser(@RequestParam("file") List<MultipartFile> fileList, @RequestParam("model") String model){
         Gson gson = new Gson();
         UserDTO userDTO = gson.fromJson(model, UserDTO.class);

@@ -1,6 +1,7 @@
 package lk.ijse.spring.controller;
 
 
+import com.google.gson.Gson;
 import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.CarSearchDTO;
 import lk.ijse.spring.dto.CarTypeSearchDTO;
@@ -10,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/car")
@@ -21,9 +25,11 @@ public class CarController {
 
     //add cars
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseUtil saveCar(@RequestBody CarDTO carDTO){
-        carService.saveCar(carDTO);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseUtil saveCar(@RequestParam("file") List<MultipartFile> fileList, @RequestParam("model") String model){
+        Gson gson = new Gson();
+        CarDTO carDTO = gson.fromJson(model, CarDTO.class);
+        carService.saveCar(fileList,carDTO);
         return new ResponseUtil(200,"Saved",carDTO);
     }
 
@@ -87,7 +93,7 @@ public class CarController {
     }
 
     //getAll cars
-    @GetMapping(path = "/findAllCars",produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/findAllCars",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseUtil findAllAvailableCars(@RequestBody CarSearchDTO carSearchDTO){
         return new ResponseUtil(200,"Ok",carService.findAllAvailableCars(carSearchDTO));
     }
