@@ -27,6 +27,7 @@ public class CarRentalRequest {
     @JoinColumn(name = "rentalRequestId",referencedColumnName = "rentalRequestId",insertable = false,updatable = false)
     private RentalRequest rentalRequestId;
 
+    private double lossDamagePayment;
 
 }
 

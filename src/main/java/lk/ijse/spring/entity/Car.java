@@ -36,12 +36,16 @@ public class Car {
     @JoinColumn(name = "updatedBy",referencedColumnName = "userId")
     private User updatedBy;
     private String status;
-    private String freeMileage;
+//    private String freeMileage;
     private double monthlyRate;
     private double dailyRate;
-    private String extraKm;
+    private String freeKmPerDay;
+    private String freeKmPerMonth;
+    private double pricePerExtraKm;
+//    private String extraKm;
     private String noOfPassengers;
     private String fuelType;
+    private String damageOrNot;
 
     @ManyToOne
     @JoinColumn(name = "createdBy",referencedColumnName = "userId")

@@ -28,8 +28,9 @@ public class RentalRequest {
     private Date createdOn;
     private Date pickUpDate;
     private Date returnDate;
+    private String pickuptime;
+    private String returntime;
     private String status;
-    private double lossDamagePayment;
     private String damageOrNot;
     private double rentalFee;
     private String comment;

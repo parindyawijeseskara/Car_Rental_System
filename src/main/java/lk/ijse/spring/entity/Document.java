@@ -44,4 +44,8 @@ public class Document {
     @JoinColumn(name = "uploadedBy",referencedColumnName = "userId")
     private User uploadedBy;
 
+    @ManyToOne
+    @JoinColumn(name = "rentalRequestId", referencedColumnName = "rentalRequestId")
+    private RentalRequest rentalRequestId;
+
 }
