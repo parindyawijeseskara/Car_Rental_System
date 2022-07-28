@@ -4,12 +4,13 @@ package lk.ijse.spring.service;
 import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.CarSearchDTO;
 import lk.ijse.spring.dto.CarTypeSearchDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface CarService {
 
-    public void saveCar(CarDTO carDTO);
+    public void saveCar(List<MultipartFile>fileList,CarDTO carDTO);
 
     public void deleteCar(Integer carId);
 
@@ -32,6 +33,8 @@ public interface CarService {
     List<CarDTO>findByFuelType(String fuelType);
 
     List<CarDTO> findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(CarTypeSearchDTO carTypeSearchDTO);
+
+
 
 
 }
