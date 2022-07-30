@@ -104,6 +104,5 @@ public class CarController {
         carService.findByNoOfPassengersOrTransmissionTypeOrBrandOrTypeOrFuelType(carTypeSearchDTO);
         return new ResponseUtil(200,"Ok",carTypeSearchDTO);
     }
-
-
 }
+
