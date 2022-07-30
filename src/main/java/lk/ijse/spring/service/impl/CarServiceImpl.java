@@ -47,8 +47,34 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public void saveCar(List<MultipartFile>fileList, CarDTO carDTO) {
-        Car save = carRepo.save(mapper.map(carDTO, Car.class));
-        Car carId = carRepo.findByCarId(save.getCarId());
+//        Car save = carRepo.save(mapper.map(carDTO, Car.class));
+
+        User userId = userRepo.findByUserId(carDTO.getCreatedBy());
+        Car car = new Car();
+        car.setCarId(carDTO.getCarId());
+        car.setRegisterNo(carDTO.getRegisterNo());
+        car.setBrand(carDTO.getBrand());
+        car.setType(carDTO.getType());
+        car.setColour(carDTO.getColour());
+        car.setMaintainence(carDTO.getMaintainence());
+        car.setCreatedOn(carDTO.getCreatedOn());
+        car.setTransmissionType(carDTO.getTransmissionType());
+
+        car.setStatus(carDTO.getStatus());
+        car.setMonthlyRate(carDTO.getMonthlyRate());
+        car.setDailyRate(carDTO.getDailyRate());
+        car.setFreeKmPerDay(carDTO.getFreeKmPerDay());
+        car.setFreeKmPerMonth(carDTO.getFreeKmPerMonth());
+        car.setPricePerExtraKm(carDTO.getPricePerExtraKm());
+        car.setNoOfPassengers(carDTO.getNoOfPassengers());
+        car.setFuelType(carDTO.getFuelType());
+        car.setDamageOrNot(carDTO.getDamageOrNot());
+        car.setCreatedBy(userId);
+
+
+
+        carRepo.save(car);
+        Car carId = carRepo.findByCarId(car.getCarId());
 
         //document save
         if (!fileList.isEmpty()) {
@@ -65,7 +91,7 @@ public class CarServiceImpl implements CarService {
 
                     document.setName(fileName);
                     document.setContent(doc.getBytes());
-                    document.setUploadedBy(save.getCreatedBy());
+                    document.setUploadedBy(car.getCreatedBy());
                     document.setUploadedOn(new Date());
                     document.setPaymentId(null);
                     document.setCarId(carId);
