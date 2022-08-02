@@ -3,6 +3,7 @@ package lk.ijse.spring.controller;
 
 import com.google.gson.Gson;
 import lk.ijse.spring.dto.UserDTO;
+import lk.ijse.spring.dto.UserLoginDTO;
 import lk.ijse.spring.repo.UserTypeRepo;
 import lk.ijse.spring.service.UserRegistrationService;
 import lk.ijse.spring.util.ResponseUtil;
@@ -27,6 +28,7 @@ public class UserRegistrationController {
     @ResponseStatus(HttpStatus.CREATED)  //get 201 status code in browser for successfully saved customer
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseUtil saveUser(@RequestParam("file") List<MultipartFile> fileList, @RequestParam("model") String model){
+        System.out.println(fileList.size());
         Gson gson = new Gson();
         UserDTO userDTO = gson.fromJson(model, UserDTO.class);
         userRegistrationService.saveUser(fileList,userDTO);
@@ -39,6 +41,12 @@ public class UserRegistrationController {
     public ResponseUtil getUser(String userName, String password){
         UserDTO user = userRegistrationService.getUser(userName,password);
         return new ResponseUtil(200,"Done",user);
+    }
+    //Login by userName,password,userType in admin dashBoard
+    @PostMapping(path = "/getUserInLogging" ,produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil getUserInLogging(@RequestBody UserLoginDTO userLoginDTO){
+        UserDTO userInLogging = userRegistrationService.getUserInLogging(userLoginDTO.getUserName(),userLoginDTO.getPassword(),userLoginDTO.getUserTypeId());
+        return new ResponseUtil(200,"Done",userInLogging);
     }
 
     //search User
@@ -64,10 +72,13 @@ public class UserRegistrationController {
     }
 
     //get all users
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/getAllUsers" ,produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseUtil getAllUsers(){
         return new ResponseUtil(200,"Ok",userRegistrationService.getAllUsers());
     }
 
-
+    @GetMapping(path = "/searchByUserTypeId/{userTypeId}",produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil findAllByUserTypeIdUserTypeId(@PathVariable Integer userTypeId){
+        return new ResponseUtil(200,"Ok",userRegistrationService.findAllByUserTypeIdUserTypeId(userTypeId));
+    }
 }
