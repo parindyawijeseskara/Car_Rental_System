@@ -393,8 +393,47 @@ public class RentalRequestServiceImpl implements RentalRequestService {
 
     @Override
     public List<RentalRequestDTO> getAllRequests() {
-        return mapper.map(requestRepo.findAll(),new TypeToken<List<RentalRequestDTO>>() {
-        }.getType());
+        List<RentalRequest> rentalRequest = requestRepo.findAll();
+        List<RentalRequestDTO> rentalRequestDTO = new ArrayList<>();
+        List<String>carNameList = new ArrayList<>();
+        List<String>driverNameList = new ArrayList<>();
+
+        for (RentalRequest request:rentalRequest) {
+            RentalRequestDTO rentalRequestDTO1 = new RentalRequestDTO();
+            rentalRequestDTO1.setRentalRequestId(request.getRentalRequestId());
+            rentalRequestDTO1.setCreatedOn(request.getCreatedOn());
+            rentalRequestDTO1.setPickUpDate(request.getPickUpDate());
+            rentalRequestDTO1.setReturnDate(request.getReturnDate());
+            rentalRequestDTO1.setPickuptime(request.getPickuptime());
+            rentalRequestDTO1.setReturntime(request.getReturntime());
+            rentalRequestDTO1.setStatus(request.getStatus());
+            rentalRequestDTO1.setDamageOrNot(request.getDamageOrNot());
+            rentalRequestDTO1.setRentalFee(request.getRentalFee());
+            rentalRequestDTO1.setComment(request.getComment());
+            rentalRequestDTO1.setUpdatedOn(request.getUpdatedOn());
+            rentalRequestDTO1.setUpdatedBy(request.getUpdatedBy());
+            User userId = userRepo.findByUserId(request.getCreatedBy().getUserId());
+            rentalRequestDTO1.setCreatedBy(userId.getUserId());
+
+            List<CarRentalRequest> carRentalRequestList = carRentalRequestRepo.findAllByRentalRequestIdRentalRequestId(request.getRentalRequestId());
+            for (CarRentalRequest carRentalRequest:carRentalRequestList) {
+                String carName = carRentalRequest.getCarId().getBrand();
+                carNameList.add(carName);
+            }
+            
+            List<RentalRequestDriver> driverRentalRequestList = rentalRequestDriverRepo.findAllByRentalRequestIdRentalRequestId(request.getRentalRequestId());
+            for (RentalRequestDriver rentalRequestDriver:driverRentalRequestList) {
+                String diverName = rentalRequestDriver.getDriverId().getName();
+                driverNameList.add(diverName);
+
+            }
+            rentalRequestDTO1.setCarNameList(carNameList);
+            rentalRequestDTO1.setDriverNameList(driverNameList);
+
+            rentalRequestDTO.add(rentalRequestDTO1);
+        }
+            return rentalRequestDTO;
+
     }
 
     @Override
