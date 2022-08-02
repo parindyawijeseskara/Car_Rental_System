@@ -1,12 +1,10 @@
 package lk.ijse.spring.service.impl;
 
 
+import lk.ijse.spring.dto.CarDTO;
 import lk.ijse.spring.dto.DocumentTypeDTO;
 import lk.ijse.spring.dto.UserDTO;
-import lk.ijse.spring.entity.Document;
-import lk.ijse.spring.entity.DocumentType;
-import lk.ijse.spring.entity.User;
-import lk.ijse.spring.entity.UserType;
+import lk.ijse.spring.entity.*;
 import lk.ijse.spring.repo.DocumentRepo;
 import lk.ijse.spring.repo.DocumentTypeRepo;
 import lk.ijse.spring.repo.UserRepo;
@@ -73,12 +71,33 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
     @Override
     public void saveUser(List<MultipartFile> fileList, UserDTO dto) {
-        User save = userRepo.save(mapper.map(dto, User.class));
+//        User save = userRepo.save(mapper.map(dto, User.class));
+
+        UserType userTypeId = userTypeRepo.findByUserTypeId(dto.getUserTypeId());
+//        User userTypeId = userRepo.findByUserTypeId(dto.getUserTypeId());
+        User user = new User();
+        user.setUserId(dto.getUserId());
+        user.setUserName(dto.getUserName());
+        user.setEmail(dto.getEmail());
+        user.setPassword(dto.getPassword());
+        user.setAddress(dto.getAddress());
+        user.setLicenseNo(dto.getLicenseNo());
+        user.setNic(dto.getNic());
+        user.setContactNo(dto.getContactNo());
+        user.setUserTypeId(userTypeId);
+
+        userRepo.save(user);
+        User userId = userRepo.findByUserId(dto.getUserId());
+
+        //Get document type Id
+        DocumentTypeDTO documentTypeDTO = new DocumentTypeDTO();
+        DocumentType documentTypeId = documentTypeRepo.findByDocumentTypeId(documentTypeDTO.getDocumentTypeId());
 
         // document save
         if (!fileList.isEmpty()) {
             fileList.forEach((doc) -> {
                 Document document = new Document();
+
 
                 try {
 
@@ -90,11 +109,11 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
                     document.setName(fileName);
                     document.setContent(doc.getBytes());
-                    document.setUploadedBy(save);
+                    document.setUploadedBy(userId);
                     document.setUploadedOn(new Date());
                     document.setPaymentId(null);
                     document.setCarId(null);
-                    document.setDocumentTypeId(null);
+                    document.setDocumentTypeId(documentTypeId);
 
                     documentRepo.save(document);
 
@@ -134,8 +153,26 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 
     @Override
     public List<UserDTO> getAllUsers() {
-        return mapper.map(userRepo.findAll(),new TypeToken<List<UserDTO>>() {
-        }.getType());
+        List<User> users = userRepo.findAll();
+        List<UserDTO> userDTOS = new ArrayList<>();
+
+        for (User user:users) {
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUserId(user.getUserId());
+            userDTO.setUserName(user.getUserName());
+            userDTO.setEmail(user.getEmail());
+            userDTO.setPassword(user.getPassword());
+            userDTO.setAddress(user.getAddress());
+            userDTO.setLicenseNo(user.getLicenseNo());
+            userDTO.setNic(user.getNic());
+            userDTO.setContactNo(user.getContactNo());
+
+            UserType byUserTypeId = userTypeRepo.findByUserTypeId(user.getUserTypeId().getUserTypeId());
+            userDTO.setUserTypeId(byUserTypeId.getUserTypeId());
+            userDTOS.add(userDTO);
+
+        }
+            return userDTOS;
     }
 
     @Override
@@ -147,5 +184,43 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
             return mapper.map(user1,UserDTO.class);
         }
         return null;
+    }
+
+    @Override
+    public List<UserDTO> findAllByUserTypeIdUserTypeId(Integer userTypeId) {
+        List<User> allByUserTypeIdUserTypeId = userRepo.findAllByUserTypeIdUserTypeId(userTypeId);
+        List<UserDTO> userDTO = new ArrayList<>();
+
+        for (User userType:allByUserTypeIdUserTypeId) {
+            UserDTO userDTO1 = new UserDTO();
+            userDTO1.setUserId(userType.getUserId());
+            userDTO1.setUserName(userType.getUserName());
+            userDTO1.setEmail(userType.getEmail());
+            userDTO1.setPassword(userType.getPassword());
+            userDTO1.setAddress(userType.getAddress());
+            userDTO1.setLicenseNo(userType.getLicenseNo());
+            userDTO1.setNic(userType.getNic());
+            userDTO1.setContactNo(userType.getContactNo());
+            userDTO1.setUserTypeId(userTypeId);
+            userDTO.add(userDTO1);
+        }
+        return userDTO;
+    }
+
+    @Override
+    public UserDTO getUserInLogging(String userName, String password, Integer userTypeId) {
+        User user = userRepo.findByUserNameAndPasswordAndUserTypeIdUserTypeId(userName, password, userTypeId);
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserName(user.getUserName());
+        userDTO.setPassword(user.getPassword());
+        userDTO.setUserTypeId(user.getUserTypeId().getUserTypeId());
+
+//        if(user.isPresent()){
+//            User user1 = user.get();
+//            System.out.println(user1.toString());
+//            return mapper.map(user1,UserDTO.class);
+//        }
+        return userDTO;
     }
 }

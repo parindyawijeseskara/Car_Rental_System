@@ -20,5 +20,9 @@ public interface UserRegistrationService {
     //login
     public UserDTO getUser(String userName,String password);
 
+    List<UserDTO>findAllByUserTypeIdUserTypeId(Integer userTypeId);
+
+    public UserDTO getUserInLogging(String userName,String password,Integer userTypeId);
+
 
 }
