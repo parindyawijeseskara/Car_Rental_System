@@ -19,6 +19,6 @@ public class UserDTO {
     private String licenseNo;
     private String nic;
     private String contactNo;
-    private Integer userType;
+    private Integer userTypeId;
 
 }

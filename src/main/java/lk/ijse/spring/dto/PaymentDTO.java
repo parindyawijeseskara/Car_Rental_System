@@ -21,6 +21,9 @@ public class PaymentDTO {
     private double amount;
     private RentalRequestDTO rentalRequest;
     private UserDTO user;
-
+    private double totalAmount;
+    private Integer userId;
+    private Integer rentalRequestId;
+    private String userName;
 
 }

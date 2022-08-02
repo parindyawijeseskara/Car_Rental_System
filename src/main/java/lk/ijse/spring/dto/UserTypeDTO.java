@@ -12,5 +12,5 @@ import lombok.ToString;
 @ToString
 public class UserTypeDTO {
     private int userTypeId;
-    private int userType;
+    private String userType;
 }
