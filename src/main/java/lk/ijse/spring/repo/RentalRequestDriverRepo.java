@@ -8,4 +8,6 @@ import java.util.List;
 public interface RentalRequestDriverRepo extends JpaRepository<RentalRequestDriver,Integer> {
     List<RentalRequestDriver> findAllByRentalRequestIdRentalRequestId(Integer id);
 
+
+
 }

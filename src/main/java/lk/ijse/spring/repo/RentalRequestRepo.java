@@ -16,4 +16,9 @@ public interface RentalRequestRepo extends JpaRepository<RentalRequest,Integer> 
     List<RentalRequest> findAllByPickUpDateBetweenOrReturnDateBetween(String fromDate1,String toDate1,String fromDate2,String toDate2);
 
     List<RentalRequest> getAllByStatus(String status);
+
+
+
+
+
 }
