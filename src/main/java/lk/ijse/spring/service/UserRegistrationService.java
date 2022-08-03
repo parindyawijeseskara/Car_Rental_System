@@ -22,7 +22,9 @@ public interface UserRegistrationService {
 
     List<UserDTO>findAllByUserTypeIdUserTypeId(Integer userTypeId);
 
-    public UserDTO getUserInLogging(String userName,String password,Integer userTypeId);
+    public UserDTO getUserInLogging(String userName,String password,String userTypeId);
+
+    public UserDTO getUserInLog(Integer userId);
 
 
 }
