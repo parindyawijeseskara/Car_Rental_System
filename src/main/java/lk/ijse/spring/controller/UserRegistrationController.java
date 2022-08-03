@@ -49,6 +49,13 @@ public class UserRegistrationController {
         return new ResponseUtil(200,"Done",userInLogging);
     }
 
+    @GetMapping(path = "/getUserByUserId/{userId}",produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseUtil getUserInLog(@PathVariable Integer userId){
+        UserDTO userInLog = userRegistrationService.getUserInLog(userId);
+        return new ResponseUtil(200,"Done",userInLog);
+
+    }
+
     //search User
     @ResponseStatus(HttpStatus.CREATED)
     @GetMapping(path = "/{userId}",produces = MediaType.APPLICATION_JSON_VALUE)
