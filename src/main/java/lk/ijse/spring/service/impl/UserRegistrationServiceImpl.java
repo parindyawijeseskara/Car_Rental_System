@@ -208,10 +208,11 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
     }
 
     @Override
-    public UserDTO getUserInLogging(String userName, String password, Integer userTypeId) {
-        User user = userRepo.findByUserNameAndPasswordAndUserTypeIdUserTypeId(userName, password, userTypeId);
+    public UserDTO getUserInLogging(String userName, String password, String userTypeId) {
+        User user = userRepo.findByUserNameAndPasswordAndUserTypeIdUserTypeId(userName, password, Integer.valueOf(userTypeId));
 
         UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(user.getUserId());
         userDTO.setUserName(user.getUserName());
         userDTO.setPassword(user.getPassword());
         userDTO.setUserTypeId(user.getUserTypeId().getUserTypeId());
@@ -223,4 +224,22 @@ public class UserRegistrationServiceImpl implements UserRegistrationService {
 //        }
         return userDTO;
     }
+
+    @Override
+    public UserDTO getUserInLog(Integer userId) {
+        User userId1 = userRepo.findByUserId(userId);
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(userId);
+        userDTO.setUserName(userId1.getUserName());
+        userDTO.setEmail(userId1.getEmail());
+        userDTO.setPassword(userId1.getPassword());
+        userDTO.setAddress(userId1.getAddress());
+        userDTO.setLicenseNo(userId1.getLicenseNo());
+        userDTO.setNic(userId1.getNic());
+        userDTO.setContactNo(userId1.getContactNo());
+
+        return userDTO;
+    }
+
 }
